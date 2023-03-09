@@ -86,7 +86,7 @@ function App() {
               <Card.Body className='text-dark text-start'>
                 <Form validated={validated} onSubmit={handleSubmit}>
                   <Form.Label className='text-dark text-start'>Judul Film</Form.Label>
-                  <Form.Select className='text-dark' value={film} onChange={handleFilmChange}>
+                  <Form.Select className='text-dark' value={film} onChange={handleFilmChange} controlId='validationCustom02' required>
                     <option value={""}>choose film ..</option>
                     {
                       dataFilmList.map(item =>(
