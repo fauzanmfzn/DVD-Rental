@@ -1,12 +1,14 @@
 import React,  {  useEffect, useState } from 'react';
 import './App.css';
 import { v4 as uuid } from 'uuid';
+import { Container, Button, Col, Row, Form, Card, ListGroup, InputGroup } from 'react-bootstrap';
 
 function App() {
   const [film, setFilm] = useState("")
   const [harga, setHarga] = useState("")
   const [dataFilmList, setDataFilmList] = useState([{'artistName':'', 'collectionId': ''}])
   const [listBarang, setListBarang] = useState([])
+  const [validated, setValidated] = useState(false);
   
 
   useEffect(() => {
@@ -14,11 +16,34 @@ function App() {
       const response = await fetch("https://itunes.apple.com/search?term=tom+cruise&entity")
       const newData = await response.json();
       
-      setDataFilmList(newData.results.slice(1,5));
+      setDataFilmList(newData.results.slice(1,4));
       console.log(newData.results.slice(1,4));
     };
     fetchData();
   },[])
+
+  const handleSubmit = (e) =>{
+    e.preventDefault();
+    const form = e.currentTarget;
+    if (form.checkValidity() === false){
+      e.preventDefault();
+      e.stopPropagation();
+    }else{
+      setValidated(true);
+      var intHarga = +harga
+      const newItem = {
+      id : new Date().getTime().toString(),
+      film,
+      s : "-",
+      intHarga}
+      setListBarang([newItem,...listBarang])
+      console.log(harga);
+      setFilm("")
+      setHarga("")
+      setValidated(false);
+    }
+    
+  }
 
   const handleFilmChange = (event) =>{
     event.preventDefault();
@@ -31,84 +56,61 @@ function App() {
     console.log(harga);
   }
 
-
-  const saveBtn = (e) =>{
-    e.preventDefault();
-    console.log(film + "-" + harga)
-    if(harga === "" || film ==="")
-    {
-      alert("harga atau film tidak boleh kosong")
-    }else{
-      var intHarga = +harga
-      const newItem = {
-      id : new Date().getTime().toString(),
-      film,
-      s : "-",
-      intHarga
-    }
-    setListBarang([newItem,...listBarang])
-    console.log(harga);
-    setFilm("")
-    setHarga("")
-    }
-    
-  }
-
   return (
-    <div className="App back">
-      <div className="container-fluid mt-5">
-        <div className="row" style={{width:"100%", paddingBottom:"400px"}}>
-          <div className="col-sm-6" style={{paddingBottom:"800px"}}>
-            <div className="card" style={{borderRadius:"10%"}}>
-              <div className="card-header text-center text-dark">
-              </div>
-              <div className="card-body" style={{paddingBottom:"200px"}}>
-                <h5 className="text-center text-dark">RENTAL DVD</h5>
-                <ul className="list-group list-group-numbered text-start mt-4">
-                  {/* <li className="list-group-item">armageddon - Rp.5000</li> */}
+    <div className='App back'>
+      <Container fluid>
+        <Row className='justify-content-center mt-5'>
+          <Col xs={10} md={7}>
+            <Card>
+              <Card.Body className='text-dark'>
+                <Card.Title>RENTAL DVD</Card.Title>
+                <ListGroup as={"ol"} className='text-start' numbered>
                   {
                     listBarang.map(item =>(
-                      <li className="list-group-item" value={item.newItem} key={item.id}>{item.film}-Rp.{item.intHarga}</li>
+                      <ListGroup.Item as={"li"} value={item.newItem} key={item.id}>{item.film}-Rp.{item.intHarga}</ListGroup.Item>
                     ))
                   }
-                </ul>
-              </div>
-              <div className="card-footer">
-                <div className="row">
-                  <div className="col text-dark"><b>TOTAL</b></div>
                   
-                  <div className="col text-dark" ><b>RP.{listBarang.reduce((total, i) => total = total + i.intHarga,0)}</b></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="col-sm-3 ms-3 ps-3">
-            <div className="card" style={{borderRadius:"10%"}}>
-              <div className="card-body" style={{paddingBottom:"30px"}}>
-                <form className="mt-3">
-                  <label className="text-dark text-start">
-                    Judul Film
-                    <select className="form-control text-dark d-inline-flex" value={film} onChange={handleFilmChange} aria-label="default select example">                     
-                      <option value="">choose film name...</option>
-                      {
-                        dataFilmList.map(item =>(
+                </ListGroup>
+                <Card.Text>
+                  <Row>
+                    <Col className='text-dark text-start'>TOTAL</Col>
+                    {<Col className='text-dark text-end'>RP.{listBarang.reduce((total, i) => total = total + i.intHarga,0)}</Col>}
+                  </Row>
+                </Card.Text>
+              </Card.Body>
+            </Card>
+          </Col>
+          <Col xs={6} md={5}>
+            <Card>
+              <Card.Body className='text-dark text-start'>
+                <Form validated={validated} onSubmit={handleSubmit}>
+                  <Form.Label className='text-dark text-start'>Judul Film</Form.Label>
+                  <Form.Select className='text-dark' value={film} onChange={handleFilmChange}>
+                    <option value={""}>choose film ..</option>
+                    {
+                      dataFilmList.map(item =>(
                           <option value={item.artistName} key={item.collectionId}>{item.artistName}</option>
                         ))
-                      }
-                    </select> 
-                  </label>
-                  <label className="text-dark text-start mt-2 ">
-                    Harga
-                    <input required type="number" className="form-control d-flex" value={harga} onChange={handleHarga} style={{marginRight:"47px"}} placeholder="RP."></input>
-                  </label>
-                  <button type="button" onClick={saveBtn} className="btn btn-primary btn-sm mt-3" >Primary</button>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+                    }
+                    
+                  </Form.Select>
+                  <Form.Group className='mb-3 mt-2' controlId='validationCustom01'>
+                    <Form.Label className='text-dark'>Jumlah</Form.Label>
+                    <Form.Control type='number' placeholder='Rp.5000' value={harga} onChange={handleHarga} required></Form.Control>
+                    <Form.Control.Feedback type='invalid'>
+                      Please choose harga
+                    </Form.Control.Feedback>
+                  </Form.Group>
+                  <Button type='submit' >Tambah</Button>
+                </Form>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+      </Container>
     </div>
+   
   );
 }
 
